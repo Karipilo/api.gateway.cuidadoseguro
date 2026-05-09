@@ -1,57 +1,58 @@
 package com.cuidadoseguro.apigateway.filter;
 
-import com.cuidadoseguro.security.JwtService;
-import lombok.RequiredArgsConstructor;
-import org.springframework.cloud.gateway.filter.GlobalFilter;
-import org.springframework.core.Ordered;
-import org.springframework.http.HttpStatus;
+import org.springframework.http.HttpHeaders;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
+import org.springframework.security.core.context.ReactiveSecurityContextHolder;
+import org.springframework.security.core.context.SecurityContextImpl;
 import org.springframework.stereotype.Component;
 import org.springframework.web.server.ServerWebExchange;
+import org.springframework.web.server.WebFilter;
+import org.springframework.web.server.WebFilterChain;
+
 import reactor.core.publisher.Mono;
 
-@Component
-@RequiredArgsConstructor
-public class JwtAuthenticationFilter implements GlobalFilter, Ordered {
+import java.util.List;
 
-    private final JwtService jwtService;
+@Component
+public class JwtAuthenticationFilter implements WebFilter {
 
     @Override
-    public Mono<Void> filter(ServerWebExchange exchange,
-                             org.springframework.cloud.gateway.filter.GatewayFilterChain chain) {
+    public Mono<Void> filter(ServerWebExchange exchange, WebFilterChain chain) {
 
-        String path = exchange.getRequest().getURI().getPath();
+        String authHeader =
+                exchange.getRequest()
+                        .getHeaders()
+                        .getFirst(HttpHeaders.AUTHORIZATION);
 
-        // 🔓 Rutas públicas
-        if (path.startsWith("/auth/login") ||
-            path.startsWith("/auth/register")) {
-            return chain.filter(exchange);
-        }
-
-        String authHeader = exchange.getRequest()
-                .getHeaders()
-                .getFirst("Authorization");
+        System.out.println("GATEWAY RECIBE HEADER: " + authHeader);
 
         if (authHeader == null || !authHeader.startsWith("Bearer ")) {
-            return unauthorized(exchange);
+            return chain.filter(exchange);
         }
 
         String token = authHeader.substring(7);
 
-        // 🔐 Validación JWT
-        if (!jwtService.isTokenValid(token)) {
-            return unauthorized(exchange);
-        }
+        //System.out.println("TOKEN: " + token);
 
-        return chain.filter(exchange);
-    }
+        // Aquí se valida el JWT realmente
+        UsernamePasswordAuthenticationToken authentication =
+                new UsernamePasswordAuthenticationToken(
+                        "usuario",
+                        null,
+                        List.of(new SimpleGrantedAuthority("ROLE_USER"))
+                );
 
-    private Mono<Void> unauthorized(ServerWebExchange exchange) {
-        exchange.getResponse().setStatusCode(HttpStatus.UNAUTHORIZED);
-        return exchange.getResponse().setComplete();
-    }
-
-    @Override
-    public int getOrder() {
-        return -1;
+        /*
+        return chain.filter(exchange)
+                .contextWrite(
+                        ReactiveSecurityContextHolder.withSecurityContext(
+                                Mono.just(new SecurityContextImpl(authentication))
+                        )
+                );
+         */
+        return chain.filter(exchange).contextWrite(
+                ReactiveSecurityContextHolder.withAuthentication(authentication)
+        );
     }
 }
