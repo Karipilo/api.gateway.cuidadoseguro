@@ -1,4 +1,5 @@
 services:
+
   gateway:
     build: .
     container_name: gateway
@@ -6,3 +7,68 @@ services:
       - "8080:8080"
     environment:
       - SPRING_PROFILES_ACTIVE=docker
+      - JWT_SECRET=${JWT_SECRET:-miClaveSecretaMuyLargaYSeguraParaJWT1234567890ABCDEF}
+    networks:
+      - cuidadoseguro-net
+    depends_on:
+      - auth-service
+      - pacientes
+      - datosmedicos-service
+      - bff-service
+    healthcheck:
+      test: ["CMD", "wget", "-qO-", "http://localhost:8080/actuator/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    restart: unless-stopped
+
+  auth-service:
+    image: ${DOCKERHUB_USERNAME:-cuidadoseguro}/auth-service:latest
+    container_name: auth-service
+    ports:
+      - "8081:8081"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JWT_SECRET=${JWT_SECRET:-miClaveSecretaMuyLargaYSeguraParaJWT1234567890ABCDEF}
+    networks:
+      - cuidadoseguro-net
+    restart: unless-stopped
+
+  pacientes:
+    image: ${DOCKERHUB_USERNAME:-cuidadoseguro}/pacientes:latest
+    container_name: pacientes
+    ports:
+      - "8082:8082"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - cuidadoseguro-net
+    restart: unless-stopped
+
+  datosmedicos-service:
+    image: ${DOCKERHUB_USERNAME:-cuidadoseguro}/datosmedicos-service:latest
+    container_name: datosmedicos-service
+    ports:
+      - "8083:8083"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+    networks:
+      - cuidadoseguro-net
+    restart: unless-stopped
+
+  bff-service:
+    image: ${DOCKERHUB_USERNAME:-cuidadoseguro}/bff-service:latest
+    container_name: bff-service
+    ports:
+      - "8090:8090"
+    environment:
+      - SPRING_PROFILES_ACTIVE=docker
+      - JWT_SECRET=${JWT_SECRET:-miClaveSecretaMuyLargaYSeguraParaJWT1234567890ABCDEF}
+    networks:
+      - cuidadoseguro-net
+    restart: unless-stopped
+
+networks:
+  cuidadoseguro-net:
+    driver: bridge
