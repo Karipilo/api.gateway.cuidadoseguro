@@ -2,9 +2,9 @@
 # CI/CD Pipeline — API Gateway (api-gateway-cuidadoseguro)
 #
 # GitHub Secrets requeridos (Settings → Secrets and variables → Actions):
-#   DOCKERHUB_USERNAME  → usuario Docker Hub
-#   DOCKERHUB_TOKEN     → Access Token Docker Hub
-#   AWS_ACCESS_KEY_ID   → credenciales AWS Lab
+#   DOCKERHUB_USERNAME    → usuario Docker Hub  (karipilo)
+#   DOCKERHUB_TOKEN       → Access Token Docker Hub
+#   AWS_ACCESS_KEY_ID     → credenciales AWS Lab
 #   AWS_SECRET_ACCESS_KEY
 #   AWS_SESSION_TOKEN
 # ─────────────────────────────────────────────────────────────────────────────
@@ -115,6 +115,6 @@ jobs:
         run: |
           aws ecs update-service \
             --cluster cuidado-seguro-cluster \
-            --service ${{ env.IMAGE_NAME }}-service \
+            --service api-gateway-service \
             --force-new-deployment \
             --region us-east-1
