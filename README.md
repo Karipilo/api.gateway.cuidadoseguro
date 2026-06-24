@@ -287,7 +287,7 @@ Las pruebas del Gateway pueden realizarse mediante:
 * Postman
 * Frontend React
 
----
+
 
 # Autor
 
@@ -295,7 +295,7 @@ Proyecto desarrollado para la asignatura de Fullstack III.
 
 Desarrollado por: Carlos Bernal.
 
----
+
 
 # Conclusión
 
