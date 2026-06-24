@@ -310,3 +310,31 @@ El sistema permite:
 * Implementar arquitectura reactiva escalable
 
 Todo esto permite construir una arquitectura distribuida segura, desacoplada y preparada para aplicaciones modernas basadas en microservicios.
+
+# Despliegue en AWS ECS Fargate
+
+## Infraestructura
+- Cluster: cuidado-seguro-cluster
+- Puerto: 8080
+- Imagen: karipilo/api-gateway:latest
+- Región: us-east-1
+
+## CI/CD
+Pipeline automático con GitHub Actions:
+1. Build & Test
+2. Docker Build & Push → Docker Hub
+3. Deploy → AWS ECS Fargate
+
+## Variables de entorno
+| Variable | Descripción |
+|----------|-------------|
+| SPRING_PROFILES_ACTIVE | docker |
+| JWT_SECRET | Clave secreta JWT |
+
+## Servicios enrutados
+| Servicio | IP | Puerto |
+|----------|----|--------|
+| Auth | 174.129.112.201 | 8081 |
+| Datos médicos | 100.31.131.105 | 8083 |
+| BFF | 34.203.222.130 | 8090 |
+| Pacientes | pendiente | 8082 |
